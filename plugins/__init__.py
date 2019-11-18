@@ -58,6 +58,10 @@ class GamePlugin(QObject):
 		self.data["target"].append(target)
 
 	@Slot()
+	def re_learn(self):
+		self.model.fit(self.data["data"], self.data["target"])
+
+	@Slot()
 	def save(self):
 		with open(self.file, "w") as file:
 			json.dump(self.data, file)
@@ -101,9 +105,6 @@ class GamePlugin(QObject):
 			self.learn(b, int(res==Player.AI))
 			self.learn(h, int(res==Player.HUMAN))
 			self.playerWon.emit(res)
-		else:
-			h = self.player_slot+int_list(list("0"*(9-len(self.player_slot))))
-			self.learn(h, 2)
 
 
 	@Property(int, notify=slotReduced)
@@ -121,33 +122,39 @@ class GamePlugin(QObject):
 			self.check_winner()
 
 	def ai_pick(self):
-		index = len(self.bot_slot)
-		test = self.bot_slot.copy()
+		# counter player movement
+		test = self.player_slot.copy()
 		num = None
-		defence = None
-		for i in range(10):
-			test_2 = self.slots.copy()
-			random.shuffle(test_2)
-			c = test+(test_2[-2:])
-			c = c+[0]*(9-len(c))
+		for i in self.slots:
+			test = test+[0]*(9-len(test))
 
-			pred = self.model.predict([c])
-			print(c, pred)
+			pred = self.model.predict([test])
+			print(test, pred)
 			if int(pred)==1:
-				num = c[index]
+				num = i
 				break
-			elif int(pred)==2:
-				defence = c[index]
 
-		if defence is not None:
-			return defence
+		if num is None:
+			# predict
+			test = self.bot_slot.copy()
+			for i in self.slots:
+				test = test+[0]*(9-len(test))
+
+				pred = self.model.predict([test])
+				print(test, pred)
+				if int(pred)==1:
+					num = i
+					break
+
 		return num
 
 	@Slot(bool)
 	def computer_pick(self, toe):
 		num = random.choice(self.slots)
 		test = self.bot_slot.copy()
+
 		# predict here
+		# if len(self.bot_slot) > 1 or len(self.player_slot) > 1:
 		c = self.ai_pick()
 		if c is not None: num = c
 		print("final", num)
