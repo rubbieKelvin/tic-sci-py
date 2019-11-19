@@ -22,6 +22,10 @@ const settarget = (num) => {
 	target = 0;
 }
 
+const setcurrent = (player) => {
+	current = player;
+}
+
 const next_player = () => {
 	if (!play_space.is_full()){
 		current = (current===player.human)?player.ai:player.human;

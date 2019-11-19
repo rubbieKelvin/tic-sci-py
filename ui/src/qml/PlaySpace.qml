@@ -27,6 +27,7 @@ Rectangle {
 		onRunningChanged:{
 			if (running){
 				resetStarted();
+				enabled = false
 			}
 		}
 		onTriggered: {

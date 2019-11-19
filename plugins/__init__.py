@@ -32,6 +32,13 @@ class GamePlugin(QObject):
 		self.playrecs[player.lower()].append(number)
 		self.records.append(number)
 
+	@Slot()
+	def reset(self):
+		# put a empty list
+		self.records = []
+		self.playrecs["x"] = []
+		self.playrecs["o"] = []
+
 	@Slot(int)
 	def newrecord(self, target):
 		# make sure record have up to 9 items

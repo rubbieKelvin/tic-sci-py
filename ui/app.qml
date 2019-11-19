@@ -126,6 +126,7 @@ ApplicationWindow{
 				}
 
 				onResetStarted:{
+					// reseting = true
 					reset_label.visible = true;
 					if (Js.target==1){
 						score2 += 1;
@@ -138,7 +139,11 @@ ApplicationWindow{
 				}
 
 				onResetEnded:{
+					// reseting = false
+					Game.reset()
 					reset_label.visible = false;
+					Js.setcurrent(Js.player.human);
+					mark_text = Js.current;
 					// Js.next_player();
 				}
 			}
