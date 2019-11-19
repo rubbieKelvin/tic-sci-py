@@ -1,4 +1,4 @@
-var ChartLineData = {
+let ChartLineData = {
       labels: ["round1","round2","round3","round4","round5"],
     datasets: [{
                fillColor: "#80007bff",
@@ -14,9 +14,13 @@ var ChartLineData = {
                     data: [1, 23, 11, 4, 11]
     }]
 };
-
+let target = 0;
 let player = {human: "X", ai: "O"};
 let current = player.human;
+
+const settarget = (num) => {
+	target = 0;
+}
 
 const next_player = () => {
 	if (!play_space.is_full()){
@@ -28,8 +32,15 @@ const next_player = () => {
 const human_pick = (id) => {
 	// when a human picks number, collect and register it
 	Game.record(player.human, id);
-	// then wait for next player to pick
-	next_player();
+
+	// check if player has won
+	if (Game.checkwinner(player.human)){
+		console.log("human won");
+		target = -1;
+		play_space.reset_pad();
+	}else{
+		next_player();
+	}
 }
 
 const ai_pick = () => {
@@ -52,6 +63,11 @@ const ai_pick = () => {
 	// register the number
 	Game.record(player.ai, num);
 
-	// wait for next player
-	next_player();
+	// check if ai has won
+	if (Game.checkwinner(player.ai)){
+		target = 1;
+		play_space.reset_pad();
+	}else{
+		next_player();
+	}
 }

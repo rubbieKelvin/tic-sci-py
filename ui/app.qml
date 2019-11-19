@@ -18,7 +18,6 @@ ApplicationWindow{
 	property int rounds: 0
 	property int score1: 0
 	property int score2: 0
-	property int prediction: 0
 	signal nextPlayer(string player)
 
 	function emit_next(player_id) {
@@ -33,6 +32,10 @@ ApplicationWindow{
 			if (player == Js.player.ai){
 				ai_pick_timer.start();
 			}
+		}
+		onClosing:{
+			print("saving model")
+			Bot.save_model();
 		}
 	}
 
@@ -124,9 +127,14 @@ ApplicationWindow{
 
 				onResetStarted:{
 					reset_label.visible = true;
-					Game.newrecord(prediction);
+					if (Js.target==1){
+						score2 += 1;
+					}else if(Js.target==-1){
+						score1 += 1;
+					}
+					Game.newrecord(Js.target);
 					rounds += 1;
-					prediction = 0;
+					Js.settarget(0);
 				}
 
 				onResetEnded:{
