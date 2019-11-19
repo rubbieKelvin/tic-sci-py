@@ -16,6 +16,9 @@ ApplicationWindow{
 	minimumHeight: 425
 
 	property int rounds: 0
+	property int score1: 0
+	property int score2: 0
+	property int prediction: 0
 	signal nextPlayer(string player)
 
 	function emit_next(player_id) {
@@ -28,7 +31,7 @@ ApplicationWindow{
 			play_space.mark_text = Js.current;
 			console.log("next: "+player);
 			if (player == Js.player.ai){
-				ai_pick_timer.start()
+				ai_pick_timer.start();
 			}
 		}
 	}
@@ -39,9 +42,11 @@ ApplicationWindow{
 		onRunningChanged:{
 			if(running){
 				load_bar.visible = true;
+				play_space.enabled = false;
 			}
 		}
 		onTriggered:{
+			play_space.enabled = true;
 			Js.ai_pick();
 			load_bar.visible = false;
 		}
@@ -119,7 +124,9 @@ ApplicationWindow{
 
 				onResetStarted:{
 					reset_label.visible = true;
+					Game.newrecord(prediction);
 					rounds += 1;
+					prediction = 0;
 				}
 
 				onResetEnded:{
@@ -156,12 +163,14 @@ ApplicationWindow{
 
 			ScoreBar {
 				color: "#28a745"
-				play_role: "O"
+				play_role: Js.player.human
+				score: score1
 			}
 
 			ScoreBar {
 				color: "#007bff"
-				play_role: "X"
+				play_role: Js.player.ai
+				score: score2
 			}
 		}
 

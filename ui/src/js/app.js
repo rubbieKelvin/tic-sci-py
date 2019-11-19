@@ -27,33 +27,31 @@ const next_player = () => {
 
 const human_pick = (id) => {
 	// when a human picks number, collect and register it
-	console.log("human picked: "+id);
-
+	Game.record(player.human, id);
 	// then wait for next player to pick
 	next_player();
 }
 
 const ai_pick = () => {
-	// aid the ai in getting his number and then marking it
-	let num = 1;
-
 	// js ai :: start
+	let num = 0;
 	let nums = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+	let anums = [];
 	for (var i = 0; i < nums.length; i++) {
 		if (play_space.is_available(nums[i])){
-			num = nums[i];
-			break;
+			anums.push(nums[i]);
+			// num = nums[i];
+			// break;
 		}
 	}
+	let n_ = JSON.stringify(anums);
+	num = Bot.guess(n_);
 	// js ai :: end
 
 	play_space.mark(num);
 	// register the number
+	Game.record(player.ai, num);
 
 	// wait for next player
 	next_player();
-}
-
-const Game = {
-
 }
