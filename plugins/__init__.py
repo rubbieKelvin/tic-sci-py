@@ -99,15 +99,16 @@ class BotPlugin(QObject):
 		num = random.choice(alist)
 		alt = None
 
-		print(plist,"+",alist)
+		# print(plist,"+",alist)
 		print(f"{math.factorial(len(alist))} possibilities")
 
 		if len(plist) > 1:
-			perm = itertools.permutations(alist)
-			for o in range(math.factorial(len(alist))):
-				i = list(next(perm))
+			# perm = itertools.permutations(alist)
+			for i in list(itertools.permutations(alist)):
 				i_ = plist.copy()
 				i_+=i
+
+				print("here:",i)
 
 				pred = self.model.predict([i_])
 
@@ -122,8 +123,12 @@ class BotPlugin(QObject):
 					x = i_[::2]
 					score = self.model.score([i_], [int(checkwin(x))*-1])
 					if score > 0.9:
-						print("counter movement:", i[1])
-						return i[1]
+						# check player's move for counter
+						for p in i:
+							c_ = checkwin(self.gameplugin.playrecs['x'].copy()+[p])
+							if c_:
+								print("counter movement:", p)
+								return p
 				elif pred == 0:
 					# print(i_, i, i[1])
 					num = i[0]
