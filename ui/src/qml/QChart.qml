@@ -35,7 +35,7 @@ Canvas {
 // /////////////////////////////////////////////////////////////////
 
   onPaint: {
-      if(!chart) {
+      if(true) {
 
           switch(chartType) {
           case Charts.ChartType.BAR:

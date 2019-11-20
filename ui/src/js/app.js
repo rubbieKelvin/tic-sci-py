@@ -1,17 +1,17 @@
-let ChartLineData = {
-      labels: ["round1","round2","round3","round4","round5"],
+let ScoreData = {
+      labels: ["0"],
     datasets: [{
                fillColor: "#80007bff",
              strokeColor: "#007bff",
               pointColor: "rgba(33,150,243,1)",
         pointStrokeColor: "#ffffff",
-                    data: [12, 2, 4, 10, 9]
+                    data: [0]
     }, {
                fillColor: "#8028a745",
              strokeColor: "#28a745",
               pointColor: "rgba(139,195,74,1)",
         pointStrokeColor: "#ffffff",
-                    data: [1, 23, 11, 4, 11]
+                    data: [0]
     }]
 };
 let target = 0;
@@ -74,4 +74,36 @@ const ai_pick = () => {
 	}else{
 		next_player();
 	}
+}
+
+
+const updatechart = (round, human, ai) =>{
+	// make sure there is at most 6 points on graph
+	if (ScoreData.labels.length > 5){
+		let l = [];
+		let d1 = [];
+		let d2 = [];
+		for (var i = 1; i < ScoreData.labels.length; i++) {
+			l.push(ScoreData.labels[i]);
+			d1.push(ScoreData.datasets[0].data[i])
+			d2.push(ScoreData.datasets[1].data[i])
+		}
+		ScoreData.labels = l;
+		ScoreData.datasets[0].data = d1;
+		ScoreData.datasets[1].data = d2;
+	}
+
+	// put data
+	ScoreData.labels.push(String(round));
+	ScoreData.datasets[0].data.push(ai);
+	ScoreData.datasets[1].data.push(human);
+
+	console.log(ScoreData.labels)
+	console.log(ScoreData.datasets[0].data)
+	console.log(ScoreData.datasets[1].data)
+
+	let ctx = chart_line.getContext("2d");
+	ctx.reset();
+	chart_line.chartData = ScoreData;
+	chart_line.repaint();
 }

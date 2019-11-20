@@ -1,5 +1,7 @@
 from PySide2.QtCore import Property, Slot, Signal, QObject
-import random, json, pickle, itertools, math
+import random, json, pickle, itertools, math, threading
+from sklearn.linear_model import SGDClassifier
+from .datasetgen import checkwin
 
 def listfill(list_, max, fill=0):
 	list_ += [fill]*(max-len(list_))
@@ -58,24 +60,35 @@ class GamePlugin(QObject):
 				[2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]]
 		res = False
 
-		if len(self.playrecs[player.lower()]) > 2:
-			for x in wins:
-				if x[0] in self.playrecs[player.lower()] and x[1] in self.playrecs[player.lower()] and x[2] in self.playrecs[player.lower()]:
-					res = True
-					break
+		# if len(self.playrecs[player.lower()]) > 2:
+		for x in wins:
+			if x[0] in self.playrecs[player.lower()] and x[1] in self.playrecs[player.lower()] and x[2] in self.playrecs[player.lower()]:
+				res = True
+				break
 		print(f"checking for player {player}, moves={self.playrecs[player.lower()]} win={res}")
 		return res
 
 class BotPlugin(QObject):
 	"""docstring for BotPlugin."""
-	def __init__(self, model, gameplugin):
+	def __init__(self, filename, gameplugin):
 		super(BotPlugin, self).__init__()
-		self.model = model
-		self.filename = "model.sav"
+		self.model = SGDClassifier()
+		self.filename = filename
 		self.gameplugin = gameplugin
+		self.read()
+
+	# savingDataStarted = Signal()
+	# savingDataEnded = Signal()
+
+	def read(self):
+		with open(self.filename) as file:
+			self.data = json.load(file)
+		self.model.fit(self.data["data"], self.data["target"])
 
 	def train(self, data, target):
 		print("fitting data into model:", [data], [target])
+		self.data["data"].append(data)
+		self.data["target"].append(target)
 		self.model.partial_fit([data], [target])
 
 	@Slot(str, result=int)
@@ -91,24 +104,40 @@ class BotPlugin(QObject):
 
 		if len(plist) > 1:
 			perm = itertools.permutations(alist)
-			for _ in range(math.factorial(len(alist))):
+			for o in range(math.factorial(len(alist))):
 				i = list(next(perm))
 				i_ = plist.copy()
 				i_+=i
 
 				pred = self.model.predict([i_])
+
 				if pred == 1:
-					print("found cool move:", i[0])
-					return i[0]
+					# if it gets a good score at prediction, use
+					y = i_[1::2]
+					score = self.model.score([i_], [int(checkwin(y))])
+					if score > 0.5:
+						print("cool move:", i[0])
+						return i[0]
+				elif pred == -1:
+					x = i_[::2]
+					score = self.model.score([i_], [int(checkwin(x))*-1])
+					if score > 0.9:
+						print("counter movement:", i[1])
+						return i[1]
 				elif pred == 0:
-					alt = i[0]
-		if alt is None:
-			return num
-			print("couldnt find a winning move")
-		else:
-			print("blocking move:", alt)
-			return alt
+					# print(i_, i, i[1])
+					num = i[0]
+
+		print("couldnt find a winning move".upper())
+		return num
+
+	def save_model_(self):
+		with open(self.filename, "w") as file:
+			json.dump(self.data, file)
+		# self.savingDataEnded.emit()
 
 	@Slot()
 	def save_model(self):
-		pickle.dump(self.model, open(self.filename, 'wb'))
+		# self.savingDataStarted.emit()
+		threading.Thread(target=self.save_model_).start()
+		# self.save_model_()

@@ -6,6 +6,7 @@ import QtQuick.Controls.Material 2.0
 import "src/qml"
 import "src/js/app.js" as Js
 import "src/js/QChart.js" as Charts
+import QtQuick.Dialogs 1.0
 
 ApplicationWindow{
 	id: root
@@ -15,9 +16,10 @@ ApplicationWindow{
 	minimumWidth: 780
 	minimumHeight: 425
 
-	property int rounds: 0
+	property int rounds: 1
 	property int score1: 0
 	property int score2: 0
+	property var monitor: [0, 0, 0, 0]
 	signal nextPlayer(string player)
 
 	function emit_next(player_id) {
@@ -29,7 +31,7 @@ ApplicationWindow{
 	    onNextPlayer:{
 			play_space.mark_text = Js.current;
 			console.log("next: "+player);
-			if (player == Js.player.ai){
+			if (player === Js.player.ai){
 				ai_pick_timer.start();
 			}
 		}
@@ -128,11 +130,21 @@ ApplicationWindow{
 				onResetStarted:{
 					// reseting = true
 					reset_label.visible = true;
-					if (Js.target==1){
+					if (Js.target===1){
 						score2 += 1;
-					}else if(Js.target==-1){
+						monitor[2]++;
+					}else if(Js.target===-1){
 						score1 += 1;
+						monitor[1]++;
 					}
+					monitor[0]++;
+					if (monitor[0] === 5){
+						Js.updatechart(monitor[3], monitor[1], monitor[2]);
+						monitor[0] = 0;
+						monitor[1] = 0;
+						monitor[2] = 0;
+					}
+					monitor[3]++;
 					Game.newrecord(Js.target);
 					rounds += 1;
 					Js.settarget(0);
@@ -153,9 +165,10 @@ ApplicationWindow{
 				Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 				Layout.preferredHeight: 325
 				Layout.preferredWidth: 431
-				chartAnimated: false;
-				chartData: Js.ChartLineData;
+				chartAnimated: false
 				chartType: Charts.ChartType.LINE;
+
+				Component.onCompleted: chartData = Js.ScoreData;
 			}
 		}
 
@@ -186,48 +199,5 @@ ApplicationWindow{
 				score: score2
 			}
 		}
-
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*##^## Designer {
-    D{i:2;anchors_x:188}D{i:3;anchors_x:97}D{i:5;anchors_x:18;anchors_y:78}D{i:11;anchors_x:0}
-D{i:1;anchors_x:23}
-}
- ##^##*/
