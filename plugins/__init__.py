@@ -1,10 +1,11 @@
 from PySide2.QtCore import Property, Slot, Signal, QObject
 import random, json, pickle, itertools, math, threading
-from sklearn.linear_model import SGDClassifier
 from .datasetgen import checkwin
+from joblib import dump
 
-def listfill(list_, max, fill=0):
-	list_ += [fill]*(max-len(list_))
+def listfill(list_, max_, fill=0):
+	if len(list_) != max_:
+		list_ += [fill]*(max_-len(list_))
 
 # def list_to_int(list_):
 # 	list_ = list.copy()
@@ -70,25 +71,14 @@ class GamePlugin(QObject):
 
 class BotPlugin(QObject):
 	"""docstring for BotPlugin."""
-	def __init__(self, filename, gameplugin):
+	def __init__(self, model, filename, gameplugin):
 		super(BotPlugin, self).__init__()
-		self.model = SGDClassifier()
+		self.model = model
 		self.filename = filename
 		self.gameplugin = gameplugin
-		self.read()
-
-	# savingDataStarted = Signal()
-	# savingDataEnded = Signal()
-
-	def read(self):
-		with open(self.filename) as file:
-			self.data = json.load(file)
-		self.model.fit(self.data["data"], self.data["target"])
 
 	def train(self, data, target):
 		print("fitting data into model:", [data], [target])
-		self.data["data"].append(data)
-		self.data["target"].append(target)
 		self.model.partial_fit([data], [target])
 
 	@Slot(str, result=int)
@@ -107,8 +97,6 @@ class BotPlugin(QObject):
 			for i in list(itertools.permutations(alist)):
 				i_ = plist.copy()
 				i_+=i
-
-				print("here:",i)
 
 				pred = self.model.predict([i_])
 
@@ -137,8 +125,7 @@ class BotPlugin(QObject):
 		return num
 
 	def save_model_(self):
-		with open(self.filename, "w") as file:
-			json.dump(self.data, file)
+		dump(self.model, self.filename)
 		# self.savingDataEnded.emit()
 
 	@Slot()

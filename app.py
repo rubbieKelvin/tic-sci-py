@@ -1,15 +1,24 @@
-import os, sys
+import os, sys, joblib, json
 from PySide2.QtWidgets import QApplication
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from plugins import GamePlugin, BotPlugin
+from sklearn.linear_model import SGDClassifier
 
 appname = "tic-tac-toe"
 org = "rubbiesoft"
 data_file = "data\\intel.json"
+model_file = "data\\tic-sci-py.model"
 
+if os.access(model_file, os.F_OK):
+	model = joblib.load(model_file)
+else:
+	with open(data_file) as file:
+		data = json.load(file)
+	model = SGDClassifier()
+	model.fit(data["data"], data["target"])
 
 game_plugin = GamePlugin()
-bot_plugin = BotPlugin(data_file, game_plugin)
+bot_plugin = BotPlugin(model, model_file, game_plugin)
 
 # cut out the line below if the file is very large
 game_plugin.bot = bot_plugin
